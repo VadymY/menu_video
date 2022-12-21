@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/langs">
+        <file>main_ru.qm</file>
+        <file>main_ukr.qm</file>
+    </qresource>
+    <qresource prefix="/sound">
+        <file>no_volume.png</file>
+        <file>volume.png</file>
+    </qresource>
+</RCC>
