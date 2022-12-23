@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QTranslator>
+#include "myvideosurface.h"
+
 QT_BEGIN_NAMESPACE
 class QAction;
 class QActionGroup;
@@ -94,6 +96,7 @@ private:
 
     QVideoWidget *m_videoWidget;
     QMediaPlayer *m_player;
+    QMediaPlayer *m_2player;
 
     QTranslator *translator;
     QPushButton * mute_bt;
@@ -104,6 +107,8 @@ private:
     QPushButton * play_bt;
     QPushButton * pause_bt;
     QPushButton * stop_bt;
+    QPushButton * fr_get;
+    MyVideoSurface * mysurf;
 
     qint64 cur_position;
     qint64 duration;

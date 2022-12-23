@@ -1,5 +1,5 @@
 #QT       += core gui
-QT += multimedia multimediawidgets
+QT += multimedia multimediawidgets multimedia-private
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -14,10 +14,12 @@ CONFIG += c++11
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    myvideosurface.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    myvideosurface.h
 
 TRANSLATIONS += main_en.ts
 TRANSLATIONS += main_ukr.ts

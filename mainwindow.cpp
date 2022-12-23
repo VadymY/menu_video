@@ -85,10 +85,18 @@ MainWindow::MainWindow(QWidget *parent)
     m_volume->setValue(30);
     m_volume->setMaximumWidth(200);
     hbox->addWidget(m_volume);
+    fr_get = new QPushButton("Catch frame");
+    fr_get->setFixedSize(100, m_height);
+    hbox->addWidget(fr_get);
 
     connect(play_bt, &QPushButton::clicked, this, [&](){
         if(m_player->isMetaDataAvailable()){
             m_player->play();
+            m_2player->play();
+            //            m_videoWidget->size();
+            //            QVideoSurfaceFormat frm = QVideoFrame::Format_ARGB32;
+            //            mysurf->start(frm);
+
             play_bt->setStyleSheet(m_select_str);
             pause_bt->setStyleSheet(m_normal_str);
             stop_bt->setStyleSheet(m_normal_str);
@@ -108,6 +116,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(pause_bt, &QPushButton::clicked, this, [&](){
         m_player->pause();
+        m_2player->pause();
         play_bt->setStyleSheet(m_normal_str);
         pause_bt->setStyleSheet(m_select_str);
         stop_bt->setStyleSheet(m_normal_str);
@@ -116,6 +125,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(stop_bt, &QPushButton::clicked, this, [&](){
         m_player->stop();
+        m_2player->stop();
         m_slider->setValue(0);
         play_bt->setStyleSheet(m_normal_str);
         pause_bt->setStyleSheet(m_normal_str);
@@ -144,8 +154,18 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(rate_cont, SIGNAL(currentIndexChanged(int)), this, SLOT(index_rate(int)));
+    mysurf = new MyVideoSurface();
     m_player = new QMediaPlayer(m_videoWidget);
+    m_2player = new QMediaPlayer(m_videoWidget);
     m_player->setVideoOutput(m_videoWidget);
+    m_2player->setVideoOutput(mysurf);
+    m_2player->setMuted(true);
+
+    connect(fr_get, &QPushButton::clicked, this, [&](){
+        mysurf->is_can_write = true;;
+
+    });
+
     connect(m_player, &QMediaPlayer::positionChanged, this, [&](){
         if(m_player->isMetaDataAvailable()){
             qint64 new_cur_position = m_player->position();
@@ -209,15 +229,19 @@ void MainWindow::index_rate(int idx)
     switch(idx){
     case 0:
         emit m_player->setPlaybackRate(0.5);
+        emit m_2player->setPlaybackRate(0.5);
         break;
     case 1:
         emit m_player->setPlaybackRate(1.0);
+        emit m_2player->setPlaybackRate(1.0);
         break;
     case 2:
         emit m_player->setPlaybackRate(1.5);
+        emit m_2player->setPlaybackRate(1.5);
         break;
     case 3:
         emit m_player->setPlaybackRate(2.0);
+        emit m_2player->setPlaybackRate(2.0);
         break;
     }
 }
@@ -242,11 +266,11 @@ QString MainWindow::getTime(qint64 duration)
 
 void MainWindow::contextMenuEvent(QContextMenuEvent *event)
 {
-//    QMenu menu(this);
-//    menu.addAction(cutAct);
-//    menu.addAction(copyAct);
-//    menu.addAction(pasteAct);
-//    menu.exec(event->globalPos());
+    //    QMenu menu(this);
+    //    menu.addAction(cutAct);
+    //    menu.addAction(copyAct);
+    //    menu.addAction(pasteAct);
+    //    menu.exec(event->globalPos());
 }
 
 void MainWindow::retranslateUi(QMainWindow *MainWindow)
@@ -315,6 +339,7 @@ void MainWindow::newFile()
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Open video file"), "./", tr("Video Files (*.mp4)"));
     m_player->setMedia(QUrl::fromLocalFile(fileName));
+    m_2player->setMedia(QUrl::fromLocalFile(fileName));
     this->duration = m_player->duration();
     QString dur  = QString::number(this->duration);
     duration_bt->setText(QString("-/") + dur);
@@ -450,96 +475,96 @@ void MainWindow::createActions()
     exitAct->setStatusTip(tr("Exit the application"));
     connect(exitAct, &QAction::triggered, this, &QWidget::close);
 
-//    undoAct = new QAction(tr("&Undo"), this);
-//    undoAct->setShortcuts(QKeySequence::Undo);
-//    undoAct->setStatusTip(tr("Undo the last operation"));
-//    connect(undoAct, &QAction::triggered, this, &MainWindow::undo);
+    //    undoAct = new QAction(tr("&Undo"), this);
+    //    undoAct->setShortcuts(QKeySequence::Undo);
+    //    undoAct->setStatusTip(tr("Undo the last operation"));
+    //    connect(undoAct, &QAction::triggered, this, &MainWindow::undo);
 
-//    redoAct = new QAction(tr("&Redo"), this);
-//    redoAct->setShortcuts(QKeySequence::Redo);
-//    redoAct->setStatusTip(tr("Redo the last operation"));
-//    connect(redoAct, &QAction::triggered, this, &MainWindow::redo);
+    //    redoAct = new QAction(tr("&Redo"), this);
+    //    redoAct->setShortcuts(QKeySequence::Redo);
+    //    redoAct->setStatusTip(tr("Redo the last operation"));
+    //    connect(redoAct, &QAction::triggered, this, &MainWindow::redo);
 
-//    cutAct = new QAction(tr("Cu&t"), this);
-//    cutAct->setShortcuts(QKeySequence::Cut);
-//    cutAct->setStatusTip(tr("Cut the current selection's contents to the "
-//                            "clipboard"));
-//    connect(cutAct, &QAction::triggered, this, &MainWindow::cut);
+    //    cutAct = new QAction(tr("Cu&t"), this);
+    //    cutAct->setShortcuts(QKeySequence::Cut);
+    //    cutAct->setStatusTip(tr("Cut the current selection's contents to the "
+    //                            "clipboard"));
+    //    connect(cutAct, &QAction::triggered, this, &MainWindow::cut);
 
-//    copyAct = new QAction(tr("&Copy"), this);
-//    copyAct->setShortcuts(QKeySequence::Copy);
-//    copyAct->setStatusTip(tr("Copy the current selection's contents to the "
-//                             "clipboard"));
-//    connect(copyAct, &QAction::triggered, this, &MainWindow::copy);
+    //    copyAct = new QAction(tr("&Copy"), this);
+    //    copyAct->setShortcuts(QKeySequence::Copy);
+    //    copyAct->setStatusTip(tr("Copy the current selection's contents to the "
+    //                             "clipboard"));
+    //    connect(copyAct, &QAction::triggered, this, &MainWindow::copy);
 
-//    pasteAct = new QAction(tr("&Paste"), this);
-//    pasteAct->setShortcuts(QKeySequence::Paste);
-//    pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
-//                              "selection"));
-//    connect(pasteAct, &QAction::triggered, this, &MainWindow::paste);
+    //    pasteAct = new QAction(tr("&Paste"), this);
+    //    pasteAct->setShortcuts(QKeySequence::Paste);
+    //    pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
+    //                              "selection"));
+    //    connect(pasteAct, &QAction::triggered, this, &MainWindow::paste);
 
-//    boldAct = new QAction(tr("&Bold"), this);
-//    boldAct->setCheckable(true);
-//    boldAct->setShortcut(QKeySequence::Bold);
-//    boldAct->setStatusTip(tr("Make the text bold"));
-//    connect(boldAct, &QAction::triggered, this, &MainWindow::bold);
+    //    boldAct = new QAction(tr("&Bold"), this);
+    //    boldAct->setCheckable(true);
+    //    boldAct->setShortcut(QKeySequence::Bold);
+    //    boldAct->setStatusTip(tr("Make the text bold"));
+    //    connect(boldAct, &QAction::triggered, this, &MainWindow::bold);
 
-//    QFont boldFont = boldAct->font();
-//    boldFont.setBold(true);
-//    boldAct->setFont(boldFont);
+    //    QFont boldFont = boldAct->font();
+    //    boldFont.setBold(true);
+    //    boldAct->setFont(boldFont);
 
-//    italicAct = new QAction(tr("&Italic"), this);
-//    italicAct->setCheckable(true);
-//    italicAct->setShortcut(QKeySequence::Italic);
-//    italicAct->setStatusTip(tr("Make the text italic"));
-//    connect(italicAct, &QAction::triggered, this, &MainWindow::italic);
+    //    italicAct = new QAction(tr("&Italic"), this);
+    //    italicAct->setCheckable(true);
+    //    italicAct->setShortcut(QKeySequence::Italic);
+    //    italicAct->setStatusTip(tr("Make the text italic"));
+    //    connect(italicAct, &QAction::triggered, this, &MainWindow::italic);
 
-//    QFont italicFont = italicAct->font();
-//    italicFont.setItalic(true);
-//    italicAct->setFont(italicFont);
+    //    QFont italicFont = italicAct->font();
+    //    italicFont.setItalic(true);
+    //    italicAct->setFont(italicFont);
 
-//    setLineSpacingAct = new QAction(tr("Set &Line Spacing..."), this);
-//    setLineSpacingAct->setStatusTip(tr("Change the gap between the lines of a "
-//                                       "paragraph"));
-//    connect(setLineSpacingAct, &QAction::triggered, this, &MainWindow::setLineSpacing);
+    //    setLineSpacingAct = new QAction(tr("Set &Line Spacing..."), this);
+    //    setLineSpacingAct->setStatusTip(tr("Change the gap between the lines of a "
+    //                                       "paragraph"));
+    //    connect(setLineSpacingAct, &QAction::triggered, this, &MainWindow::setLineSpacing);
 
-//    setParagraphSpacingAct = new QAction(tr("Set &Paragraph Spacing..."), this);
-//    setParagraphSpacingAct->setStatusTip(tr("Change the gap between paragraphs"));
-//    connect(setParagraphSpacingAct, &QAction::triggered,
-//            this, &MainWindow::setParagraphSpacing);
+    //    setParagraphSpacingAct = new QAction(tr("Set &Paragraph Spacing..."), this);
+    //    setParagraphSpacingAct->setStatusTip(tr("Change the gap between paragraphs"));
+    //    connect(setParagraphSpacingAct, &QAction::triggered,
+    //            this, &MainWindow::setParagraphSpacing);
 
-//    aboutAct = new QAction(tr("&About"), this);
-//    aboutAct->setStatusTip(tr("Show the application's About box"));
-//    connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
+    //    aboutAct = new QAction(tr("&About"), this);
+    //    aboutAct->setStatusTip(tr("Show the application's About box"));
+    //    connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
 
-//    aboutQtAct = new QAction(tr("About &Qt"), this);
-//    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
-//    connect(aboutQtAct, &QAction::triggered, qApp, &QApplication::aboutQt);
-//    connect(aboutQtAct, &QAction::triggered, this, &MainWindow::aboutQt);
+    //    aboutQtAct = new QAction(tr("About &Qt"), this);
+    //    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
+    //    connect(aboutQtAct, &QAction::triggered, qApp, &QApplication::aboutQt);
+    //    connect(aboutQtAct, &QAction::triggered, this, &MainWindow::aboutQt);
 
-//    leftAlignAct = new QAction(tr("&Left Align"), this);
-//    leftAlignAct->setCheckable(true);
-//    leftAlignAct->setShortcut(tr("Ctrl+L"));
-//    leftAlignAct->setStatusTip(tr("Left align the selected text"));
-//    connect(leftAlignAct, &QAction::triggered, this, &MainWindow::leftAlign);
+    //    leftAlignAct = new QAction(tr("&Left Align"), this);
+    //    leftAlignAct->setCheckable(true);
+    //    leftAlignAct->setShortcut(tr("Ctrl+L"));
+    //    leftAlignAct->setStatusTip(tr("Left align the selected text"));
+    //    connect(leftAlignAct, &QAction::triggered, this, &MainWindow::leftAlign);
 
-//    rightAlignAct = new QAction(tr("&Right Align"), this);
-//    rightAlignAct->setCheckable(true);
-//    rightAlignAct->setShortcut(tr("Ctrl+R"));
-//    rightAlignAct->setStatusTip(tr("Right align the selected text"));
-//    connect(rightAlignAct, &QAction::triggered, this, &MainWindow::rightAlign);
+    //    rightAlignAct = new QAction(tr("&Right Align"), this);
+    //    rightAlignAct->setCheckable(true);
+    //    rightAlignAct->setShortcut(tr("Ctrl+R"));
+    //    rightAlignAct->setStatusTip(tr("Right align the selected text"));
+    //    connect(rightAlignAct, &QAction::triggered, this, &MainWindow::rightAlign);
 
-//    justifyAct = new QAction(tr("&Justify"), this);
-//    justifyAct->setCheckable(true);
-//    justifyAct->setShortcut(tr("Ctrl+J"));
-//    justifyAct->setStatusTip(tr("Justify the selected text"));
-//    connect(justifyAct, &QAction::triggered, this, &MainWindow::justify);
+    //    justifyAct = new QAction(tr("&Justify"), this);
+    //    justifyAct->setCheckable(true);
+    //    justifyAct->setShortcut(tr("Ctrl+J"));
+    //    justifyAct->setStatusTip(tr("Justify the selected text"));
+    //    connect(justifyAct, &QAction::triggered, this, &MainWindow::justify);
 
-//    centerAct = new QAction(tr("&Center"), this);
-//    centerAct->setCheckable(true);
-//    centerAct->setShortcut(tr("Ctrl+E"));
-//    centerAct->setStatusTip(tr("Center the selected text"));
-//    connect(centerAct, &QAction::triggered, this, &MainWindow::center);
+    //    centerAct = new QAction(tr("&Center"), this);
+    //    centerAct->setCheckable(true);
+    //    centerAct->setShortcut(tr("Ctrl+E"));
+    //    centerAct->setStatusTip(tr("Center the selected text"));
+    //    connect(centerAct, &QAction::triggered, this, &MainWindow::center);
 
     setLangEn = new QAction(tr("English"), this);
     setLangEn->setCheckable(true);
@@ -558,12 +583,12 @@ void MainWindow::createActions()
     connect(setLangRu, &QAction::triggered, this, &MainWindow::setRussia);
 
     //! [6] //! [7]
-//    alignmentGroup = new QActionGroup(this);
-//    alignmentGroup->addAction(leftAlignAct);
-//    alignmentGroup->addAction(rightAlignAct);
-//    alignmentGroup->addAction(justifyAct);
-//    alignmentGroup->addAction(centerAct);
-//    leftAlignAct->setChecked(true);
+    //    alignmentGroup = new QActionGroup(this);
+    //    alignmentGroup->addAction(leftAlignAct);
+    //    alignmentGroup->addAction(rightAlignAct);
+    //    alignmentGroup->addAction(justifyAct);
+    //    alignmentGroup->addAction(centerAct);
+    //    leftAlignAct->setChecked(true);
     //! [6]
 }
 //! [7]
@@ -584,18 +609,18 @@ void MainWindow::createMenus()
     //! [11]
     fileMenu->addAction(exitAct);
 
-//    editMenu = menuBar()->addMenu(tr("&Edit"));
-//    editMenu->addAction(undoAct);
-//    editMenu->addAction(redoAct);
-//    editMenu->addSeparator();
-//    editMenu->addAction(cutAct);
-//    editMenu->addAction(copyAct);
-//    editMenu->addAction(pasteAct);
-//    editMenu->addSeparator();
+    //    editMenu = menuBar()->addMenu(tr("&Edit"));
+    //    editMenu->addAction(undoAct);
+    //    editMenu->addAction(redoAct);
+    //    editMenu->addSeparator();
+    //    editMenu->addAction(cutAct);
+    //    editMenu->addAction(copyAct);
+    //    editMenu->addAction(pasteAct);
+    //    editMenu->addSeparator();
 
-//    helpMenu = menuBar()->addMenu(tr("&Help"));
-//    helpMenu->addAction(aboutAct);
-//    helpMenu->addAction(aboutQtAct);
+    //    helpMenu = menuBar()->addMenu(tr("&Help"));
+    //    helpMenu->addAction(aboutAct);
+    //    helpMenu->addAction(aboutQtAct);
     //! [8]
     //!
     langMenu = menuBar()->addMenu(tr("Language"));
@@ -604,16 +629,16 @@ void MainWindow::createMenus()
     langMenu->addAction(setLangRu);
 
     //! [12]
-//    formatMenu = editMenu->addMenu(tr("&Format"));
-//    formatMenu->addAction(boldAct);
-//    formatMenu->addAction(italicAct);
-//    formatMenu->addSeparator()->setText(tr("Alignment"));
-//    formatMenu->addAction(leftAlignAct);
-//    formatMenu->addAction(rightAlignAct);
-//    formatMenu->addAction(justifyAct);
-//    formatMenu->addAction(centerAct);
-//    formatMenu->addSeparator();
-//    formatMenu->addAction(setLineSpacingAct);
-//    formatMenu->addAction(setParagraphSpacingAct);
+    //    formatMenu = editMenu->addMenu(tr("&Format"));
+    //    formatMenu->addAction(boldAct);
+    //    formatMenu->addAction(italicAct);
+    //    formatMenu->addSeparator()->setText(tr("Alignment"));
+    //    formatMenu->addAction(leftAlignAct);
+    //    formatMenu->addAction(rightAlignAct);
+    //    formatMenu->addAction(justifyAct);
+    //    formatMenu->addAction(centerAct);
+    //    formatMenu->addSeparator();
+    //    formatMenu->addAction(setLineSpacingAct);
+    //    formatMenu->addAction(setParagraphSpacingAct);
 }
 
