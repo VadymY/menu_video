@@ -162,8 +162,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_2player->setMuted(true);
 
     connect(fr_get, &QPushButton::clicked, this, [&](){
-        mysurf->is_can_write = true;;
-
+        mysurf->is_can_write = true;
+        mysurf->pos_play = m_player->position();
     });
 
     connect(m_player, &QMediaPlayer::positionChanged, this, [&](){
@@ -348,6 +348,7 @@ void MainWindow::newFile()
     // E://My//RemoteJob//2022//Develop neural network//QT_VIDEO_2//Video/2_Advanced.mp4
     //    m_player->play();
     //    infoLabel->setText(tr("Invoked <b>File|New</b>"));
+    mysurf->file_video = fileName;
 }
 
 void MainWindow::open()

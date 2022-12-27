@@ -2,6 +2,7 @@
 #define MYVIDEOSURFACE_H
 
 #include <QAbstractVideoSurface>
+#include <QMediaPlayer>
 
 class MyVideoSurface : public QAbstractVideoSurface
 {
@@ -22,7 +23,15 @@ public:
 
     QImage QVideoFrameToQImage( const QVideoFrame& videoFrame );
 
+    void setPlayer(QMediaPlayer * ptr);
+
     bool is_can_write = false;
+
+    qint64 pos_play;
+    QString file_video;
+
+private:
+    QMediaPlayer * m_player;
 };
 
 #endif // MYVIDEOSURFACE_H

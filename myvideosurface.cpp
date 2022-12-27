@@ -106,6 +106,19 @@ void MyVideoSurface::stop()
 
 bool MyVideoSurface::present(const QVideoFrame &frame)
 {
+    auto getTime = [](qint64 ms){
+        uint32_t ret_ms = ms % 1000u;
+        ms /= 1000u;
+        uint32_t sec = ms % 60u;
+        ms /= 60u;
+        uint32_t mn = ms % 60u;
+        ms /= 60u;
+        uint32_t hr = ms;
+        QString str = "%1:%2:%3::%4";
+        QString out = str.arg(hr).arg(mn).arg(sec).arg(ret_ms);
+        return out;
+    };
+
     if(is_can_write)
     {
         if (frame.isValid())
@@ -126,9 +139,16 @@ bool MyVideoSurface::present(const QVideoFrame &frame)
             }
             else{
                 QImage im = MyVideoSurface::QVideoFrameToQImage(frame);
-                QString as = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
-                as += ".png";
-                im.save(as);
+                auto tm = getTime(pos_play);
+//                QFileInfo fi(file_video);
+//                std::string str = fi.fileName().toStdString();
+//                auto pos_pnt = str.find('.');
+//                str = str.substr(0, pos_pnt);
+//                str = str.substr(0, 18) + std::string("_") + tm.toStdString();
+
+                tm += ".png";
+//                tm = QString(str.c_str());
+                im.save(tm);
                 is_can_write = false;
             }
         }
@@ -185,4 +205,9 @@ QImage MyVideoSurface::QVideoFrameToQImage( const QVideoFrame& videoFrame )
     }
 
     return QImage();
+}
+
+void MyVideoSurface::setPlayer(QMediaPlayer *ptr)
+{
+    m_player = ptr;
 }
