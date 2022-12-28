@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     mute_bt->setFixedSize(90, m_height);
 
     duration_bt = new QPushButton();
-    duration_bt->setFixedSize(120, m_height);
+    duration_bt->setFixedSize(180, m_height);
 
     QComboBox * rate_cont = new QComboBox();
     rate_cont->resize(40, 40);
@@ -85,9 +85,30 @@ MainWindow::MainWindow(QWidget *parent)
     m_volume->setValue(30);
     m_volume->setMaximumWidth(200);
     hbox->addWidget(m_volume);
-    fr_get = new QPushButton("Catch frame");
+    fr_get = new QPushButton(tr("Screenshot"));
     fr_get->setFixedSize(100, m_height);
     hbox->addWidget(fr_get);
+
+    QPushButton * seek_left = new QPushButton(tr("Left"));
+    seek_left->setFixedSize(50, m_height);
+    hbox->addWidget(seek_left);
+
+//    QTextEdit * seek_dur = new QTextEdit("1");
+//    seek_dur->setPlainText("1000");
+//    seek_dur->setFixedSize(70, m_height);
+//    hbox->addWidget(seek_dur);
+
+    QComboBox * seek_meas = new QComboBox();
+    seek_meas->addItem("ms");
+    seek_meas->addItem("sec");
+    seek_meas->addItem("min");
+    seek_meas->addItem("hour");
+    seek_meas->setFixedSize(65, m_height);
+    hbox->addWidget(seek_meas);
+
+    QPushButton * seek_right = new QPushButton(tr("Right"));
+    seek_right->setFixedSize(50, m_height);
+    hbox->addWidget(seek_right);
 
     connect(play_bt, &QPushButton::clicked, this, [&](){
         if(m_player->isMetaDataAvailable()){
@@ -194,6 +215,7 @@ MainWindow::MainWindow(QWidget *parent)
         float koef = play_pos / rel;
         this->cur_position *= koef;
         m_player->setPosition(this->cur_position);
+        m_2player->setPosition(this->cur_position);
     });
 
     connect(m_volume, &QSlider::sliderMoved, m_player, [&](int volume){
@@ -260,7 +282,8 @@ QString MainWindow::getTime(qint64 duration)
         str = QString::number(hour) + QString{":"};
     }
     str += QString::number(min) + QString{":"};
-    str += QString::number(sec);
+    str += QString::number(sec) + QString{":"};
+    str += QString::number(ms);
     return str;
 }
 
@@ -336,8 +359,11 @@ void MainWindow::setRussia()
 
 void MainWindow::newFile()
 {
+    QString selfilter = tr("JPEG (*.mp4 *.mkv *.mov)");
     QString fileName = QFileDialog::getOpenFileName(this,
-                                                    tr("Open video file"), "./", tr("Video Files (*.mp4)"));
+                                                    tr("Open video file"), "./", tr("All files (*.*);; Video Files (*.mp4 *.mkv *.mov)"),
+                                                    &selfilter);
+
     m_player->setMedia(QUrl::fromLocalFile(fileName));
     m_2player->setMedia(QUrl::fromLocalFile(fileName));
     this->duration = m_player->duration();

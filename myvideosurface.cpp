@@ -67,20 +67,20 @@ bool MyVideoSurface::isFormatSupported(const QVideoSurfaceFormat &format) const
             && format.handleType() == QAbstractVideoBuffer::NoHandle;
 }
 
-//bool MyVideoSurface::start(const QVideoSurfaceFormat &format)
-//{
+bool MyVideoSurface::start(const QVideoSurfaceFormat &format)
+{
 //    const QImage::Format imageFormat = QVideoFrame::imageFormatFromPixelFormat(format.pixelFormat());
 //    const QSize size = format.frameSize();
 
 //    if (imageFormat != QImage::Format_Invalid && !size.isEmpty()) {
-////        this->imageFormat = imageFormat;
-////        imageSize = size;
-////        sourceRect = format.viewport();
+//        this->imageFormat = imageFormat;
+//        imageSize = size;
+//        sourceRect = format.viewport();
 
-//        QAbstractVideoSurface::start(format);
+        return QAbstractVideoSurface::start(format);
 
-////        widget->updateGeometry();
-////        updateVideoRect();
+//        widget->updateGeometry();
+//        updateVideoRect();
 
 //        return true;
 //    }
@@ -92,32 +92,32 @@ bool MyVideoSurface::isFormatSupported(const QVideoSurfaceFormat &format) const
 //    else {
 //        return false;
 //    }
-//}
+}
 
 void MyVideoSurface::stop()
 {
     //    currentFrame = QVideoFrame();
     //    targetRect = QRect();
 
-    QAbstractVideoSurface::stop();
+//    QAbstractVideoSurface::stop();
 
     //    widget->update();
 }
 
 bool MyVideoSurface::present(const QVideoFrame &frame)
 {
-    auto getTime = [](qint64 ms){
-        uint32_t ret_ms = ms % 1000u;
-        ms /= 1000u;
-        uint32_t sec = ms % 60u;
-        ms /= 60u;
-        uint32_t mn = ms % 60u;
-        ms /= 60u;
-        uint32_t hr = ms;
-        QString str = "%1:%2:%3::%4";
-        QString out = str.arg(hr).arg(mn).arg(sec).arg(ret_ms);
-        return out;
-    };
+//    auto getTime = [](qint64 ms){
+//        uint32_t ret_ms = ms % 1000u;
+//        ms /= 1000u;
+//        uint32_t sec = ms % 60u;
+//        ms /= 60u;
+//        uint32_t mn = ms % 60u;
+//        ms /= 60u;
+//        uint32_t hr = ms;
+//        QString str = "%1:%2:%3::%4";
+//        QString out = str.arg(hr).arg(mn).arg(sec).arg(ret_ms);
+//        return out;
+//    };
 
     if(is_can_write)
     {
@@ -139,14 +139,14 @@ bool MyVideoSurface::present(const QVideoFrame &frame)
             }
             else{
                 QImage im = MyVideoSurface::QVideoFrameToQImage(frame);
-                auto tm = getTime(pos_play);
+//                auto tm = getTime(pos_play);
 //                QFileInfo fi(file_video);
 //                std::string str = fi.fileName().toStdString();
 //                auto pos_pnt = str.find('.');
 //                str = str.substr(0, pos_pnt);
 //                str = str.substr(0, 18) + std::string("_") + tm.toStdString();
 
-                tm += ".png";
+                QString tm = "1.png";
 //                tm = QString(str.c_str());
                 im.save(tm);
                 is_can_write = false;

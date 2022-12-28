@@ -18,7 +18,7 @@ public:
     bool present(const QVideoFrame &frame) override;
 
     bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
-//    bool start(const QVideoSurfaceFormat &format) override;
+    bool start(const QVideoSurfaceFormat &format) override;
     void stop() override;
 
     QImage QVideoFrameToQImage( const QVideoFrame& videoFrame );
