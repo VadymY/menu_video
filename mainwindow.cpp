@@ -1,11 +1,4 @@
 #include "mainwindow.h"
-#include "myvideosurface.h"
-#include <QtWidgets>
-#include <QMediaPlayer>
-#include <QMediaPlaylist>
-#include <QVideoWidget>
-#include <QApplication>
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -89,16 +82,18 @@ MainWindow::MainWindow(QWidget *parent)
     fr_get->setFixedSize(100, m_height);
     hbox->addWidget(fr_get);
 
-    QPushButton * seek_left = new QPushButton(tr("Left"));
-    seek_left->setFixedSize(50, m_height);
+    seek_left = new QPushButton(tr("Left"));
+    seek_left->setFixedSize(75, m_height);
+    QIcon seek_left_icon(":/seek/left.png");
+    seek_left->setIcon(seek_left_icon);
     hbox->addWidget(seek_left);
 
-//    QTextEdit * seek_dur = new QTextEdit("1");
-//    seek_dur->setPlainText("1000");
-//    seek_dur->setFixedSize(70, m_height);
-//    hbox->addWidget(seek_dur);
+    seek_dur = new QLineEdit("1");
+    seek_dur->setText("1000");
+    seek_dur->setFixedSize(70, m_height);
+    hbox->addWidget(seek_dur);
 
-    QComboBox * seek_meas = new QComboBox();
+    seek_meas = new QComboBox();
     seek_meas->addItem("ms");
     seek_meas->addItem("sec");
     seek_meas->addItem("min");
@@ -106,18 +101,16 @@ MainWindow::MainWindow(QWidget *parent)
     seek_meas->setFixedSize(65, m_height);
     hbox->addWidget(seek_meas);
 
-    QPushButton * seek_right = new QPushButton(tr("Right"));
-    seek_right->setFixedSize(50, m_height);
+    seek_right = new QPushButton(tr("Right"));
+    seek_right->setFixedSize(75, m_height);
+    QIcon seek_right_icon(":/seek/right.png");
+    seek_left->setIcon(seek_right_icon);
     hbox->addWidget(seek_right);
 
     connect(play_bt, &QPushButton::clicked, this, [&](){
         if(m_player->isMetaDataAvailable()){
             m_player->play();
             m_2player->play();
-            //            m_videoWidget->size();
-            //            QVideoSurfaceFormat frm = QVideoFrame::Format_ARGB32;
-            //            mysurf->start(frm);
-
             play_bt->setStyleSheet(m_select_str);
             pause_bt->setStyleSheet(m_normal_str);
             stop_bt->setStyleSheet(m_normal_str);
@@ -194,8 +187,8 @@ MainWindow::MainWindow(QWidget *parent)
                 this->cur_position = m_player->position();
                 QString cur_pos  = getTime(this->cur_position);
                 duration_bt->setText(cur_pos + QString("/") + duration_str);
-                int mn = m_slider->minimum();
-                int mx = m_slider->maximum();
+                //                int mn = m_slider->minimum();
+                //                int mx = m_slider->maximum();
                 int new_percent_play = (this->cur_position  * 1000u)/ this->duration;
                 if (new_percent_play != percent_play){
                     m_slider->setValue(new_percent_play);
@@ -205,7 +198,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
 
-    connect(m_slider, &QSlider::sliderReleased, m_player, [&](){
+    connect(m_slider, &QSlider::sliderReleased, [&](){
         int mn = m_slider->minimum();
         int mx = m_slider->maximum();
         int vl = m_slider->value();
@@ -218,20 +211,22 @@ MainWindow::MainWindow(QWidget *parent)
         m_2player->setPosition(this->cur_position);
     });
 
-    connect(m_volume, &QSlider::sliderMoved, m_player, [&](int volume){
+    connect(m_volume, &QSlider::sliderMoved, [&](int volume){
         m_player->setVolume(volume);
     });
+
+    connect(seek_left, SIGNAL(clicked()), this, SLOT(seek_catch()));
+    connect(seek_right, SIGNAL(clicked()), this, SLOT(seek_catch()));
 
     connect(mysurf, SIGNAL(process_image_valid(QVideoFrame, qint64)), &worker, SLOT(image_process(QVideoFrame, qint64)));
     connect(mysurf, SIGNAL(process_image_invalid(QVideoFrame, qint64)), &worker, SLOT(image_process_invalide(QVideoFrame, qint64)));
     connect(&thread_work, SIGNAL(started()), &worker, SLOT(run()));
-//    connect(&worker, SIGNAL(finished()), &thread_work, SLOT(terminate()));
     connect(mysurf, SIGNAL(destroy()), &worker, SLOT(destroy()));
     connect(&thread_work, SIGNAL(finished()), &thread_work, SLOT(deletelater()));
     worker.moveToThread(&thread_work);
 
     thread_work.start();
-//    detach
+    //    detach
 
     hbox->setAlignment(Qt::AlignLeft);
     v_box->addWidget(m_slider);
@@ -256,7 +251,7 @@ MainWindow::~MainWindow()
 {
     delete m_player;
     delete m_2player;
-//    delete mysurf;
+    //    delete mysurf;
 }
 
 void MainWindow::index_rate(int idx)
@@ -379,7 +374,7 @@ void MainWindow::newFile()
 
     m_player->setMedia(QUrl::fromLocalFile(fileName));
     m_2player->setMedia(QUrl::fromLocalFile(fileName));
-//    this->duration = m_player->duration();
+    //    this->duration = m_player->duration();
     QString dur  = QString::number(this->duration);
     duration_bt->setText(QString("-/") + dur);
     mysurf->file_video = fileName;
@@ -508,7 +503,7 @@ void MainWindow::createActions()
     exitAct = new QAction(tr("Exit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
-//    connect(exitAct, &QAction::triggered, this, &QWidget::close);
+    //    connect(exitAct, &QAction::triggered, this, &QWidget::close);
     connect(exitAct, &QAction::triggered, mysurf, &MyVideoSurface::destroy_all);
     connect(mysurf, &MyVideoSurface::destroy_main, this, &QWidget::close);
 
@@ -679,4 +674,47 @@ void MainWindow::createMenus()
     //    formatMenu->addAction(setParagraphSpacingAct);
 }
 
+void MainWindow::seek_catch()
+{
+    if (m_player->isMetaDataAvailable()){
+        QPushButton* senderPointer = qobject_cast<QPushButton *>(sender());
+        bool dir = false;
+        if(senderPointer != nullptr)
+        {
+            if(senderPointer == seek_left){
+                dir = false;
+            }
+            else  if(senderPointer == seek_right){
+                dir = true;
+            }
+        }
+        else{
+            int h =6;
+        }
 
+        qint32 number =  seek_dur->text().toUInt();
+        qint16 meas = seek_meas->currentIndex();
+        qint32 koeff = 1u;
+        switch (meas){
+        case 0: koeff = 1u;
+            break;
+        case 1: koeff = 1000u;
+            break;
+        case 2: koeff = 60000u;
+            break;
+        case 3: koeff = 3600000u;
+        }
+        number *= koeff;
+        cur_position = m_player->position();
+        if (!dir){
+            cur_position -= number;
+        }
+        else{
+            cur_position += number;
+        }
+        m_player->setPosition(cur_position);
+        m_2player->setPosition(this->cur_position);
+        float slider_pos = cur_position * (m_slider->maximum() - m_slider->minimum()) / duration +  m_slider->minimum();
+        m_slider->setValue(slider_pos);
+    }
+}

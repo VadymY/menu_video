@@ -87,19 +87,21 @@ void Process_write_frame::image_process_invalide(QVideoFrame videoFrame, qint64 
 {
     QImage im = QVideoFrameToQImage(videoFrame);
     auto tm = getTime(pos);
-    //                QFileInfo fi(file_video);
-    //                std::string str = fi.fileName().toStdString();
-    //                auto pos_pnt = str.find('.');
-    //                str = str.substr(0, pos_pnt);
-    //                str = str.substr(0, 18) + std::string("_") + tm.toStdString();
-
     tm += ".png";
-    //                tm = QString(str.c_str());
     im.save(tm);
     int h = 6;
 }
 
 void Process_write_frame::image_process(QVideoFrame videoFrame, qint64 pos)
 {
-    int h = 6;
+    QVideoFrame cloneFrame(videoFrame);
+    cloneFrame.map(QAbstractVideoBuffer::ReadOnly);
+    const QImage im(cloneFrame.bits(),
+                       cloneFrame.width(),
+                       cloneFrame.height(),
+                       QVideoFrame::imageFormatFromPixelFormat(cloneFrame .pixelFormat()));
+    auto tm = getTime(pos);
+    tm += ".png";
+    im.save(tm);
+    cloneFrame.unmap();
 }

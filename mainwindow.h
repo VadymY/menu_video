@@ -4,6 +4,11 @@
 #include <QMainWindow>
 #include <QTranslator>
 #include <QThread>
+#include <QtWidgets>
+#include <QMediaPlayer>
+#include <QMediaPlaylist>
+#include <QVideoWidget>
+#include <QApplication>
 #include "myvideosurface.h"
 #include "process_write_frame.h"
 
@@ -30,6 +35,7 @@ public:
 public slots:
     void index_rate(int idx);
 
+    void seek_catch();
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
@@ -112,6 +118,10 @@ private:
     QPushButton * stop_bt;
     QPushButton * fr_get;
     MyVideoSurface * mysurf;
+    QPushButton * seek_left;
+    QPushButton * seek_right;
+    QLineEdit * seek_dur;
+    QComboBox * seek_meas;
 
     qint64 cur_position;
     qint64 duration;

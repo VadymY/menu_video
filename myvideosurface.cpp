@@ -133,26 +133,7 @@ void MyVideoSurface::stop()
 
 bool MyVideoSurface::present(const QVideoFrame &frame)
 {
-    auto getTime = [](qint64 ms){
-        uint32_t ret_ms = ms % 1000u;
-        ms /= 1000u;
-        uint32_t sec = ms % 60u;
-        ms /= 60u;
-        uint32_t mn = ms % 60u;
-        ms /= 60u;
-        uint32_t hr = ms;
-        QString str = "%1:%2:%3::%4";
-        QString out = str.arg(hr).arg(mn).arg(sec).arg(ret_ms);
-        return out;
-    };
-
-    bool cond_1 = surfaceFormat().pixelFormat() != frame.pixelFormat();
-    bool cond_2 = surfaceFormat().frameSize() != frame.size();
-
     QVideoFrame::PixelFormat px1 = surfaceFormat().pixelFormat();
-    QVideoFrame::PixelFormat px2 = frame.pixelFormat();
-    QSize s1 = surfaceFormat().frameSize();
-    QSize s2 = frame.size();
 
     if(is_can_write)
     {
@@ -160,32 +141,13 @@ bool MyVideoSurface::present(const QVideoFrame &frame)
         {
             QVideoFrame::PixelFormat pf = frame.pixelFormat();
             const QImage::Format imageFormat = QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat());
-            //            const QSize size = frame.size();
-            QVideoFrame cloneFrame(frame);
+
             if (imageFormat != QImage::Format::Format_Invalid){
                 emit process_image_valid(frame, pos_play);
-                cloneFrame.map(QAbstractVideoBuffer::ReadOnly);
-                const QImage image(cloneFrame.bits(),
-                                   cloneFrame.width(),
-                                   cloneFrame.height(),
-                                   QVideoFrame::imageFormatFromPixelFormat(cloneFrame .pixelFormat()));
-                //        emit frameAvailable(image); // this is very important
-                image.save("image_cor.png");
-                cloneFrame.unmap();
+
             }
             else{
                 emit process_image_invalid(frame, pos_play);
-//                QImage im = MyVideoSurface::QVideoFrameToQImage(frame);
-//                auto tm = getTime(pos_play);
-//                //                QFileInfo fi(file_video);
-//                //                std::string str = fi.fileName().toStdString();
-//                //                auto pos_pnt = str.find('.');
-//                //                str = str.substr(0, pos_pnt);
-//                //                str = str.substr(0, 18) + std::string("_") + tm.toStdString();
-
-//                tm += ".png";
-//                //                tm = QString(str.c_str());
-//                im.save(tm);
             }
         }
         is_can_write = false;
@@ -200,12 +162,8 @@ bool MyVideoSurface::present(const QVideoFrame &frame)
 
     if (surfaceFormat().pixelFormat() != frame.pixelFormat()
             || surfaceFormat().frameSize() != frame.size() || cond_3) {
-        //        setError(IncorrectFormatError);
-        //        stop();
-
-//                if (m_format != nullptr){
-//                    QAbstractVideoSurface::start(*m_format);
-//                }
+                setError(IncorrectFormatError);
+                stop();
 
                 return false;
     } else {
