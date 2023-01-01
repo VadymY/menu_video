@@ -3,10 +3,11 @@
 
 #include <QAbstractVideoSurface>
 #include <QMediaPlayer>
+#include <QObject>
 
 class MyVideoSurface : public QAbstractVideoSurface
 {
-
+    Q_OBJECT
 public:
     explicit MyVideoSurface(QAbstractVideoSurface *parent = nullptr);
     ~MyVideoSurface();
@@ -23,15 +24,21 @@ public:
 
     QImage QVideoFrameToQImage( const QVideoFrame& videoFrame );
 
-    void setPlayer(QMediaPlayer * ptr);
-
     bool is_can_write = false;
 
     qint64 pos_play;
     QString file_video;
 
+public slots:
+    void destroy_all(bool def = true);
+signals:
+    void process_image_valid(QVideoFrame, qint64);
+    void process_image_invalid(QVideoFrame, qint64);
+    void destroy();
+    void destroy_main();
+
 private:
-    QMediaPlayer * m_player;
+    QVideoSurfaceFormat * m_format;
 };
 
 #endif // MYVIDEOSURFACE_H

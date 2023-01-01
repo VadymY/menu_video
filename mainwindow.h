@@ -3,7 +3,9 @@
 
 #include <QMainWindow>
 #include <QTranslator>
+#include <QThread>
 #include "myvideosurface.h"
+#include "process_write_frame.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -27,6 +29,7 @@ public:
 
 public slots:
     void index_rate(int idx);
+
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
@@ -114,6 +117,9 @@ private:
     qint64 duration;
     QString duration_str;
     int percent_play;
+
+    QThread thread_work;
+    Process_write_frame worker;
 
     void retranslateUi(QMainWindow *MainWindow);
 

@@ -1,11 +1,11 @@
 #include "mainwindow.h"
+#include "myvideosurface.h"
 #include <QtWidgets>
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
 #include <QVideoWidget>
 #include <QApplication>
 
-static int x_2, y_2, w_2, h_2;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -222,6 +222,17 @@ MainWindow::MainWindow(QWidget *parent)
         m_player->setVolume(volume);
     });
 
+    connect(mysurf, SIGNAL(process_image_valid(QVideoFrame, qint64)), &worker, SLOT(image_process(QVideoFrame, qint64)));
+    connect(mysurf, SIGNAL(process_image_invalid(QVideoFrame, qint64)), &worker, SLOT(image_process_invalide(QVideoFrame, qint64)));
+    connect(&thread_work, SIGNAL(started()), &worker, SLOT(run()));
+//    connect(&worker, SIGNAL(finished()), &thread_work, SLOT(terminate()));
+    connect(mysurf, SIGNAL(destroy()), &worker, SLOT(destroy()));
+    connect(&thread_work, SIGNAL(finished()), &thread_work, SLOT(deletelater()));
+    worker.moveToThread(&thread_work);
+
+    thread_work.start();
+//    detach
+
     hbox->setAlignment(Qt::AlignLeft);
     v_box->addWidget(m_slider);
     v_box->addLayout(hbox);
@@ -243,7 +254,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-
+    delete m_player;
+    delete m_2player;
+//    delete mysurf;
 }
 
 void MainWindow::index_rate(int idx)
@@ -366,14 +379,9 @@ void MainWindow::newFile()
 
     m_player->setMedia(QUrl::fromLocalFile(fileName));
     m_2player->setMedia(QUrl::fromLocalFile(fileName));
-    this->duration = m_player->duration();
+//    this->duration = m_player->duration();
     QString dur  = QString::number(this->duration);
     duration_bt->setText(QString("-/") + dur);
-    //    m_player->setMedia(QUrl::fromLocalFile("E://My//RemoteJob//2022//Develop neural network//QT_VIDEO_2//Video//2_Advanced.mp4"));
-    // "2 С+Advanced.mp4"
-    // E://My//RemoteJob//2022//Develop neural network//QT_VIDEO_2//Video/2_Advanced.mp4
-    //    m_player->play();
-    //    infoLabel->setText(tr("Invoked <b>File|New</b>"));
     mysurf->file_video = fileName;
 }
 
@@ -500,7 +508,9 @@ void MainWindow::createActions()
     exitAct = new QAction(tr("Exit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
-    connect(exitAct, &QAction::triggered, this, &QWidget::close);
+//    connect(exitAct, &QAction::triggered, this, &QWidget::close);
+    connect(exitAct, &QAction::triggered, mysurf, &MyVideoSurface::destroy_all);
+    connect(mysurf, &MyVideoSurface::destroy_main, this, &QWidget::close);
 
     //    undoAct = new QAction(tr("&Undo"), this);
     //    undoAct->setShortcuts(QKeySequence::Undo);
@@ -668,4 +678,5 @@ void MainWindow::createMenus()
     //    formatMenu->addAction(setLineSpacingAct);
     //    formatMenu->addAction(setParagraphSpacingAct);
 }
+
 
