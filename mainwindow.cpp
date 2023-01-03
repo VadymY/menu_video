@@ -4,6 +4,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 
 {
+
     QWidget *widget = new QWidget;
     setCentralWidget(widget);
     //! [0]
@@ -82,8 +83,8 @@ MainWindow::MainWindow(QWidget *parent)
     fr_get->setFixedSize(100, m_height);
     hbox->addWidget(fr_get);
 
-    seek_left = new QPushButton(tr("Left"));
-    seek_left->setFixedSize(75, m_height);
+    seek_left = new QPushButton();
+    seek_left->setFixedSize(45, m_height);
     QIcon seek_left_icon(":/seek/left.png");
     seek_left->setIcon(seek_left_icon);
     hbox->addWidget(seek_left);
@@ -94,17 +95,17 @@ MainWindow::MainWindow(QWidget *parent)
     hbox->addWidget(seek_dur);
 
     seek_meas = new QComboBox();
-    seek_meas->addItem("ms");
-    seek_meas->addItem("sec");
-    seek_meas->addItem("min");
-    seek_meas->addItem("hour");
-    seek_meas->setFixedSize(65, m_height);
+    seek_meas->addItem(tr("millisec"));
+    seek_meas->addItem(tr("second"));
+    seek_meas->addItem(tr("minute"));
+    seek_meas->addItem(tr("hour"));
+    seek_meas->setFixedSize(85, m_height);
     hbox->addWidget(seek_meas);
 
-    seek_right = new QPushButton(tr("Right"));
-    seek_right->setFixedSize(75, m_height);
+    seek_right = new QPushButton();
+    seek_right->setFixedSize(45, m_height);
     QIcon seek_right_icon(":/seek/right.png");
-    seek_left->setIcon(seek_right_icon);
+    seek_right->setIcon(seek_right_icon);
     hbox->addWidget(seek_right);
 
     connect(play_bt, &QPushButton::clicked, this, [&](){
@@ -126,6 +127,7 @@ MainWindow::MainWindow(QWidget *parent)
             duration_bt->setText(cur_pos + QString("/") + dur);
             QString message = tr("Playing video");
             statusBar()->showMessage(message);
+            first_play = true;
         }
     });
     connect(pause_bt, &QPushButton::clicked, this, [&](){
@@ -181,7 +183,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(m_player, &QMediaPlayer::positionChanged, this, [&](){
-        if(m_player->isMetaDataAvailable()){
+        if(m_player->isMetaDataAvailable() && first_play){
             qint64 new_cur_position = m_player->position();
             if (new_cur_position > this->cur_position - 1000u){
                 this->cur_position = m_player->position();
@@ -218,11 +220,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(seek_left, SIGNAL(clicked()), this, SLOT(seek_catch()));
     connect(seek_right, SIGNAL(clicked()), this, SLOT(seek_catch()));
 
-    connect(mysurf, SIGNAL(process_image_valid(QVideoFrame, qint64)), &worker, SLOT(image_process(QVideoFrame, qint64)));
-    connect(mysurf, SIGNAL(process_image_invalid(QVideoFrame, qint64)), &worker, SLOT(image_process_invalide(QVideoFrame, qint64)));
+    connect(mysurf, &MyVideoSurface::process_image_valid, &worker, &Process_write_frame::image_process);
+    connect(mysurf, &MyVideoSurface::process_image_invalid, &worker, &Process_write_frame::image_process_invalide);
+//    connect(mysurf, SIGNAL(process_image_invalid(QVideoFrame, qint64)), &worker, SLOT(image_process_invalide(QVideoFrame, qint64)));
     connect(&thread_work, SIGNAL(started()), &worker, SLOT(run()));
     connect(mysurf, SIGNAL(destroy()), &worker, SLOT(destroy()));
-    connect(&thread_work, SIGNAL(finished()), &thread_work, SLOT(deletelater()));
+    connect(&thread_work, &QThread::finished, &thread_work, &QObject::deleteLater);
     worker.moveToThread(&thread_work);
 
     thread_work.start();
@@ -249,9 +252,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+
     delete m_player;
     delete m_2player;
-    //    delete mysurf;
+
 }
 
 void MainWindow::index_rate(int idx)
@@ -329,7 +333,11 @@ void MainWindow::retranslateUi(QMainWindow *MainWindow)
     else{
         mute_bt->setText(QApplication::translate("MainWindow", "UnMute", nullptr));
     }
-    int h = 5;
+
+    seek_meas->setItemText(0, QApplication::translate("MainWindow", "millisec", nullptr));
+    seek_meas->setItemText(1, QApplication::translate("MainWindow", "second", nullptr));
+    seek_meas->setItemText(2, QApplication::translate("MainWindow", "minute", nullptr));
+    seek_meas->setItemText(3, QApplication::translate("MainWindow", "hour", nullptr));
 } // retranslateUi
 
 void MainWindow::setEnglish()
@@ -374,7 +382,6 @@ void MainWindow::newFile()
 
     m_player->setMedia(QUrl::fromLocalFile(fileName));
     m_2player->setMedia(QUrl::fromLocalFile(fileName));
-    //    this->duration = m_player->duration();
     QString dur  = QString::number(this->duration);
     duration_bt->setText(QString("-/") + dur);
     mysurf->file_video = fileName;
@@ -679,14 +686,19 @@ void MainWindow::seek_catch()
     if (m_player->isMetaDataAvailable()){
         QPushButton* senderPointer = qobject_cast<QPushButton *>(sender());
         bool dir = false;
+        QString message;
         if(senderPointer != nullptr)
         {
             if(senderPointer == seek_left){
                 dir = false;
+                message = tr("Rewind");
+
             }
             else  if(senderPointer == seek_right){
                 dir = true;
+                message = tr("Flash forward");
             }
+            statusBar()->showMessage(message);
         }
         else{
             int h =6;

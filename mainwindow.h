@@ -30,7 +30,7 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() ;
 
 public slots:
     void index_rate(int idx);
@@ -140,5 +140,6 @@ private:
     QString m_normal_str = QString("");
     bool m_mute = false;
     int m_height = 30;
+    bool first_play = false;
 };
 #endif // MAINWINDOW_H

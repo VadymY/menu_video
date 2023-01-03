@@ -14,7 +14,7 @@ class Process_write_frame : public QObject
 public:
     explicit Process_write_frame(QObject *parent = nullptr);
 
-    void run();
+
 
     QMutex mutex;
     QWaitCondition condition;
@@ -27,6 +27,7 @@ public slots:
     void image_process(QVideoFrame videoFrame, qint64 pos);
     void destroy();
     void image_process_invalide(QVideoFrame videoFrame, qint64 pos);
+    void run();
 };
 
 #endif // PROCESS_WRITE_FRAME_H

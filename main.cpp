@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 //    QTranslator translator;
 //    translator.load(":/langs/main_ru.qm");
 //    a.installTranslator(&translator);
-    MainWindow w;
-    w.show();
+    MainWindow * w = new MainWindow;
+    w->show();
     return a.exec();
 }
