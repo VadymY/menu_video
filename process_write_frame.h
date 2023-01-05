@@ -19,15 +19,17 @@ public:
     QMutex mutex;
     QWaitCondition condition;
     ~Process_write_frame();
+    void image_process(QVideoFrame videoFrame, qint64 pos);
+    void image_process_invalide(QVideoFrame videoFrame, qint64 pos);
+    void run();
+
 
 signals:
     void finished();
 
 public slots:
-    void image_process(QVideoFrame videoFrame, qint64 pos);
+
     void destroy();
-    void image_process_invalide(QVideoFrame videoFrame, qint64 pos);
-    void run();
 };
 
 #endif // PROCESS_WRITE_FRAME_H
